@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TurtleMask — Sign In</title>
+
+  <!-- Typography: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       1. DESIGN TOKENS & CSS VARIABLES
+       ========================================================================== */
+    :root {
+      /* Color Palette */
+      --color-green-deep: #0D3424;
+      --color-green-primary: #123D2B;
+      --color-green-dark: #082217;
+      --color-green-subtle: #1C4D38;
+      
+      --color-yellow-primary: #F6C445;
+      --color-yellow-hover: #E5B438;
+      --color-yellow-light: #FFF8E6;
+      
+      --color-neutral-bg: #F8FAF9;
+      --color-neutral-card: #FFFFFF;
+      --color-neutral-border: #D1D9D5;
+      --color-neutral-border-focus: #123D2B;
+      
+      --color-text-main: #1A2420;
+      --color-text-muted: #52635B;
+      --color-text-inverse: #FFFFFF;
+      --color-text-inverse-muted: #A3B8AE;
+      
+      --color-error-bg: #FDF2F2;
+      --color-error-border: #F8B4B4;
+      --color-error-text: #9B1C1C;
+
+      /* Typography */
+      --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+      /* Radii */
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-badge: 9999px;
+
+      /* Shadows & Focus */
+      --shadow-subtle: 0 4px 20px rgba(13, 52, 36, 0.04);
+      --shadow-focus-yellow: 0 0 0 3px rgba(246, 196, 69, 0.4);
+
+      /* Transitions */
+      --transition-standard: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* ==========================================================================
+       2. GLOBAL RESET & BASE STYLES
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--color-green-deep);
+      color: var(--color-text-main);
+      min-height: 100vh;
+      display: flex;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--color-yellow-primary);
+      outline-offset: 2px;
+    }
+
+    /* ==========================================================================
+       3. SPLIT LAYOUT STRUCTURE
+       ========================================================================== */
+    .app-container {
+      display: flex;
+      width: 100vw;
+      min-height: 100vh;
+    }
+
+    /* --- Left Brand Panel --- */
+    .brand-panel {
+      flex: 1;
+      background-color: var(--color-green-deep);
+      color: var(--color-text-inverse);
+      padding: 64px 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .brand-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-logo-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo-icon {
+      width: 36px;
+      height: 36px;
+      color: var(--color-yellow-primary);
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--color-text-inverse);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background-color: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 6px 14px;
+      border-radius: var(--radius-badge);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--color-text-inverse-muted);
+    }
+
+    .status-badge-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--color-yellow-primary);
+      border-radius: 50%;
+    }
+
+    .brand-content {
+      max-width: 480px;
+      margin: auto 0;
+      padding: 40px 0;
+    }
+
+    .brand-tagline {
+      display: inline-block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--color-yellow-primary);
+      margin-bottom: 16px;
+    }
+
+    .brand-heading {
+      font-size: 2.25rem;
+      font-weight: 700;
+      line-height: 1.25;
+      letter-spacing: -0.03em;
+      color: var(--color-text-inverse);
+      margin-bottom: 20px;
+    }
+
+    .brand-description {
+      font-size: 1.0625rem;
+      color: var(--color-text-inverse-muted);
+      line-height: 1.6;
+      margin-bottom: 48px;
+    }
+
+    .trust-pillars {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .pillar-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .pillar-icon-wrapper {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      background-color: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .pillar-icon {
+      width: 20px;
+      height: 20px;
+      stroke: var(--color-yellow-primary);
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .pillar-text {
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: var(--color-text-inverse);
+    }
+
+    .brand-footer {
+      font-size: 0.8125rem;
+      color: var(--color-text-inverse-muted);
+    }
+
+    /* --- Right Login Panel --- */
+    .login-panel {
+      flex: 1;
+      background-color: var(--color-neutral-bg);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 24px;
+      overflow-y: auto;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    .login-header {
+      margin-bottom: 32px;
+    }
+
+    .login-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--color-text-main);
+      margin-bottom: 8px;
+    }
+
+    .login-subtitle {
+      font-size: 0.9375rem;
+      color: var(--color-text-muted);
+    }
+
+    .alert-error {
+      background-color: var(--color-error-bg);
+      border: 1px solid var(--color-error-border);
+      color: var(--color-error-text);
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .alert-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+
+    /* ==========================================================================
+       4. FORM CONTROLS & COMPONENTS
+       ========================================================================== */
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--color-text-main);
+    }
+
+    .form-link {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--color-green-primary);
+      text-decoration: none;
+      transition: var(--transition-standard);
+    }
+
+    .form-link:hover {
+      text-decoration: underline;
+      color: var(--color-green-dark);
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .form-input {
+      width: 100%;
+      height: 48px;
+      padding: 0 16px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      color: var(--color-text-main);
+      background-color: var(--color-neutral-card);
+      border: 1px solid var(--color-neutral-border);
+      border-radius: var(--radius-md);
+      transition: var(--transition-standard);
+      appearance: none;
+    }
+
+    .form-input-password {
+      padding-right: 48px;
+    }
+
+    .form-input::placeholder {
+      color: #9CA3AF;
+    }
+
+    .form-input:hover {
+      border-color: #B0BBB5;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--color-neutral-border-focus);
+      box-shadow: var(--shadow-focus-yellow);
+    }
+
+    .toggle-password-btn {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      padding: 6px;
+      cursor: pointer;
+      color: var(--color-text-muted);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-standard);
+    }
+
+    .toggle-password-btn:hover {
+      color: var(--color-text-main);
+    }
+
+    .icon-eye {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .checkbox-input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .checkbox-custom {
+      width: 18px;
+      height: 18px;
+      border: 1.5px solid var(--color-neutral-border);
+      border-radius: 4px;
+      background-color: var(--color-neutral-card);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-standard);
+      flex-shrink: 0;
+    }
+
+    .checkbox-input:checked ~ .checkbox-custom {
+      background-color: var(--color-green-primary);
+      border-color: var(--color-green-primary);
+    }
+
+    .checkbox-input:focus-visible ~ .checkbox-custom {
+      box-shadow: var(--shadow-focus-yellow);
+    }
+
+    .checkbox-icon {
+      width: 12px;
+      height: 12px;
+      stroke: var(--color-yellow-primary);
+      stroke-width: 3;
+      fill: none;
+      display: none;
+    }
+
+    .checkbox-input:checked ~ .checkbox-custom .checkbox-icon {
+      display: block;
+    }
+
+    .checkbox-label {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+      font-weight: 500;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 48px;
+      padding: 0 24px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: var(--transition-standard);
+      text-decoration: none;
+      border: none;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background-color: var(--color-yellow-primary);
+      color: var(--color-green-dark);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--color-yellow-hover);
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px);
+    }
+
+    .btn-secondary {
+      background-color: var(--color-neutral-card);
+      border: 1px solid var(--color-neutral-border);
+      color: var(--color-text-main);
+    }
+
+    .btn-secondary:hover {
+      background-color: #F1F4F2;
+      border-color: #BAC5C0;
+    }
+
+    .sso-icon {
+      width: 18px;
+      height: 18px;
+      margin-right: 10px;
+    }
+
+    .passkey-container {
+      text-align: center;
+      margin-top: -8px;
+    }
+
+    .btn-passkey {
+      background: none;
+      border: none;
+      color: var(--color-green-primary);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+    }
+
+    .btn-passkey:hover {
+      text-decoration: underline;
+    }
+
+    .passkey-icon {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 24px 0;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--color-neutral-border);
+    }
+
+    .divider-text {
+      padding: 0 16px;
+      font-size: 0.8125rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-muted);
+      font-weight: 500;
+    }
+
+    .login-footer {
+      margin-top: 32px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .signup-text {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+
+    .privacy-note {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      background-color: rgba(18, 61, 43, 0.04);
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+    }
+
+    .privacy-icon {
+      width: 14px;
+      height: 14px;
+      stroke: var(--color-green-primary);
+      fill: none;
+      stroke-width: 2;
+    }
+
+    /* ==========================================================================
+       5. RESPONSIVE MEDIA QUERIES
+       ========================================================================== */
+    @media (max-width: 960px) {
+      .app-container {
+        flex-direction: column;
+      }
+
+      .brand-panel {
+        padding: 40px 24px;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .brand-content {
+        padding: 32px 0 16px 0;
+      }
+
+      .brand-heading {
+        font-size: 1.75rem;
+      }
+
+      .login-panel {
+        padding: 40px 20px 60px 20px;
+        background-color: var(--color-neutral-card);
+      }
+
+      .brand-footer {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- ======================================================================
+         LEFT BRAND PANEL (Deep Forest Green Theme)
+         ====================================================================== -->
+    <aside class="brand-panel">
+      
+      <!-- Top Brand Header -->
+      <div class="brand-header">
+        <div class="brand-logo-group">
+          <!-- Turtle Mask Shield Logo -->
+          <svg class="brand-logo-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M16 3L4 8V15C4 22.38 9.12 28.98 16 30C22.88 28.98 28 22.38 28 15V8L16 3Z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16 8L21 12V18L16 22L11 18V12L16 8Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16 8V22M11 12L21 18M11 18L21 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/>
+          </svg>
+          <span class="brand-title">TurtleMask</span>
+        </div>
+
+        <div class="status-badge" aria-label="Status: Protected Workspace">
+          <span class="status-badge-dot"></span>
+          <span>Protected Workspace</span>
+        </div>
+      </div>
+
+      <!-- Main Brand Value Proposition -->
+      <div class="brand-content">
+        <span class="brand-tagline">Privacy before intelligence</span>
+        <h1 class="brand-heading">Protect sensitive data before it reaches external AI models.</h1>
+        <p class="brand-description">
+          An enterprise-grade security layer inspecting typed inputs, OCR documents, and speech payloads for secrets and confidential data in real-time.
+        </p>
+
+        <!-- Trust Statements -->
+        <div class="trust-pillars">
+          
+          <div class="pillar-item">
+            <div class="pillar-icon-wrapper">
+              <svg class="pillar-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span class="pillar-text">Real-time input scanning & data redaction</span>
+          </div>
+
+          <div class="pillar-item">
+            <div class="pillar-icon-wrapper">
+              <svg class="pillar-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span class="pillar-text">Secure multi-model access policy engine</span>
+          </div>
+
+          <div class="pillar-item">
+            <div class="pillar-icon-wrapper">
+              <svg class="pillar-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span class="pillar-text">Zero unnecessary payload retention</span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Footer Metadata -->
+      <div class="brand-footer">
+        &copy; 2026 TurtleMask. All rights reserved.
+      </div>
+
+    </aside>
+
+    <!-- ======================================================================
+         RIGHT LOGIN PANEL (Light Clean Theme)
+         ====================================================================== -->
+    <main class="login-panel">
+      
+      <div class="login-container">
+        
+        <!-- Header -->
+        <header class="login-header">
+          <h2 class="login-title">Welcome back</h2>
+          <p class="login-subtitle">Sign in to access your secure AI workspace.</p>
+        </header>
+
+        <!-- Authentication Form -->
+        <form class="login-form" action="#" method="POST" novalidate>
+          
+          <!-- Email Field -->
+          <div class="form-group">
+            <label for="email" class="form-label">Work email address</label>
+            <div class="input-wrapper">
+              <input 
+                type="email" 
+                id="email" 
+                name="email" 
+                class="form-input" 
+                placeholder="name@company.com" 
+                required 
+                autocomplete="email"
+              />
+            </div>
+          </div>
+
+          <!-- Password Field -->
+          <div class="form-group">
+            <div class="form-label-row">
+              <label for="password" class="form-label">Password</label>
+              <a href="#" class="form-link">Forgot password?</a>
+            </div>
+            <div class="input-wrapper">
+              <input 
+                type="password" 
+                id="password" 
+                name="password" 
+                class="form-input form-input-password" 
+                placeholder="••••••••••••" 
+                required 
+                autocomplete="current-password"
+              />
+              <button 
+                type="button" 
+                class="toggle-password-btn" 
+                id="togglePassword" 
+                aria-label="Show password"
+              >
+                <svg class="icon-eye" id="eyeIcon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Remember Device Control -->
+          <label class="checkbox-group">
+            <input type="checkbox" name="remember" class="checkbox-input" />
+            <span class="checkbox-custom">
+              <svg class="checkbox-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </span>
+            <span class="checkbox-label">Remember this device</span>
+          </label>
+
+          <!-- Primary Submit Button -->
+          <button type="submit" class="btn btn-primary">
+            Sign in securely
+          </button>
+
+          <!-- Hardware Passkey Option -->
+          <div class="passkey-container">
+            <button type="button" class="btn-passkey">
+              <svg class="passkey-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>Use passkey or security key</span>
+            </button>
+          </div>
+
+        </form>
+
+        <!-- Divider -->
+        <div class="divider">
+          <span class="divider-text">or continue with</span>
+        </div>
+
+        <!-- SSO Button -->
+        <button type="button" class="btn btn-secondary">
+          <svg class="sso-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          Continue with Enterprise SSO
+        </button>
+
+        <!-- Footer / Request Access -->
+        <footer class="login-footer">
+          <p class="signup-text">
+            New to TurtleMask? <a href="#" class="form-link">Request access</a>
+          </p>
+          
+          <div class="privacy-note">
+            <svg class="privacy-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Your credentials are encrypted and protected.</span>
+          </div>
+        </footer>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const togglePasswordBtn = document.getElementById('togglePassword');
+      const passwordInput = document.getElementById('password');
+      const eyeIcon = document.getElementById('eyeIcon');
+
+      togglePasswordBtn.addEventListener('click', () => {
+        const isPassword = passwordInput.getAttribute('type') === 'password';
+        passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+        togglePasswordBtn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+        
+        if (isPassword) {
+          eyeIcon.innerHTML = `
+            <path d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908A8.962 8.962 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21M3 3l18 18" stroke-linecap="round" stroke-linejoin="round"/>
+          `;
+        } else {
+          eyeIcon.innerHTML = `
+            <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          `;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

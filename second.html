@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TurtleMask — AI Model Selection Dashboard</title>
+
+  <!-- Typography: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- React & ReactDOM CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  
+  <!-- Babel Standalone (allows running JSX directly in browser) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #F8FAF9;
+      color: #1A2420;
+    }
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      50% { opacity: 0.3; }
+      100% { opacity: 0.6; }
+    }
+    *:focus-visible {
+      outline: 2px solid #F6C445 !important;
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- React Root Container -->
+  <div id="root"></div>
+
+  <!-- React Application Logic -->
+  <script type="text/babel">
+    const { useState, useMemo, useEffect } = React;
+
+    const AI_MODELS_DATA = [
+      {
+        id: 'chatgpt-4o',
+        name: 'ChatGPT',
+        version: 'GPT-4o',
+        provider: 'OpenAI',
+        logoBg: '#10A37F',
+        description: 'Versatile model with strong general reasoning, writing, and coding capabilities.',
+        bestFor: ['General assistance', 'Writing', 'Brainstorming', 'Coding', 'Explanations'],
+        securityLevel: 'Standard',
+        dataPolicy: 'Public and Internal data only',
+        approvedDataLevels: ['Public', 'Internal'],
+        inputTypes: ['Text', 'Document', 'Image OCR'],
+        maxFileSize: '25 MB',
+        webAccess: true,
+        retentionPolicy: 'Zero retention via Gateway proxy',
+        integrationStatus: 'Connected',
+        warningMsg: 'Public and Internal data only. Confidential or Restricted data will be blocked or redacted.'
+      },
+      {
+        id: 'gemini-1-5-pro',
+        name: 'Gemini',
+        version: '1.5 Pro',
+        provider: 'Google',
+        logoBg: '#1A73E8',
+        description: 'Multimodal model optimized for large context windows, study, and image reasoning.',
+        bestFor: ['Study and learning', 'Image understanding', 'Deep research', 'Document analysis'],
+        securityLevel: 'Standard',
+        dataPolicy: 'Public and Internal data only',
+        approvedDataLevels: ['Public', 'Internal'],
+        inputTypes: ['Text', 'Document', 'Image OCR', 'Speech-to-text'],
+        maxFileSize: '50 MB',
+        webAccess: true,
+        retentionPolicy: 'Ephemeral session cache (24h)',
+        integrationStatus: 'Connected',
+        warningMsg: 'Public and Internal data only. Confidential or Restricted data will be blocked or redacted.'
+      },
+      {
+        id: 'perplexity-pro',
+        name: 'Perplexity',
+        version: 'Pro Online',
+        provider: 'Perplexity AI',
+        logoBg: '#22B3A6',
+        description: 'Real-time web search and citation engine for technical and deep research tasks.',
+        bestFor: ['Deep research', 'Web research', 'Technical comparison', 'Citation search'],
+        securityLevel: 'Enhanced monitoring',
+        dataPolicy: 'Public data only by default',
+        approvedDataLevels: ['Public'],
+        inputTypes: ['Text'],
+        maxFileSize: '10 MB',
+        webAccess: true,
+        retentionPolicy: 'Strict no-log policy',
+        integrationStatus: 'Connected',
+        warningMsg: 'Approved for Public data only. Internal or Confidential inputs will be rejected.'
+      },
+      {
+        id: 'claude-3-5-sonnet',
+        name: 'Claude',
+        version: '3.5 Sonnet',
+        provider: 'Anthropic',
+        logoBg: '#D97757',
+        description: 'Advanced reasoning engine with high precision for long documents and complex code.',
+        bestFor: ['Document analysis', 'Writing', 'Coding', 'Data analysis'],
+        securityLevel: 'Standard',
+        dataPolicy: 'Public and Internal data only',
+        approvedDataLevels: ['Public', 'Internal'],
+        inputTypes: ['Text', 'Document', 'Code files'],
+        maxFileSize: '30 MB',
+        webAccess: false,
+        retentionPolicy: 'Zero retention via Gateway proxy',
+        integrationStatus: 'Connected',
+        warningMsg: 'Public and Internal data only. Confidential or Restricted data will be blocked or redacted.'
+      },
+      {
+        id: 'copilot-enterprise',
+        name: 'Microsoft Copilot',
+        version: 'Enterprise v2',
+        provider: 'Microsoft',
+        logoBg: '#0078D4',
+        description: 'Enterprise integration tuned for office document productivity and business workflows.',
+        bestFor: ['Document analysis', 'Writing', 'General assistance', 'Data analysis'],
+        securityLevel: 'Enterprise-ready',
+        dataPolicy: 'Public, Internal, and approved Confidential data',
+        approvedDataLevels: ['Public', 'Internal', 'Confidential'],
+        inputTypes: ['Text', 'Document', 'Image OCR'],
+        maxFileSize: '100 MB',
+        webAccess: true,
+        retentionPolicy: 'Enterprise tenant isolation',
+        integrationStatus: 'Connected',
+        warningMsg: null
+      },
+      {
+        id: 'private-enterprise-llm',
+        name: 'Private Enterprise LLM',
+        version: 'Llama-3 70B AirGapped',
+        provider: 'Self-hosted / Internal',
+        logoBg: '#0D3424',
+        description: 'Air-gapped on-premise model for sensitive corporate assets, IP, and secrets.',
+        bestFor: ['Confidential document processing', 'Internal knowledge', 'Restricted data'],
+        securityLevel: 'Highest (Isolated)',
+        dataPolicy: 'Approved Confidential and Restricted data',
+        approvedDataLevels: ['Public', 'Internal', 'Confidential', 'Restricted'],
+        inputTypes: ['Text', 'Document', 'Image OCR', 'Speech-to-text'],
+        maxFileSize: '500 MB',
+        webAccess: false,
+        retentionPolicy: 'On-premise encrypted storage',
+        integrationStatus: 'Connected',
+        warningMsg: null
+      }
+    ];
+
+    const RECOMMENDED_TASKS = [
+      {
+        id: 'task-research',
+        title: 'Deep Research',
+        recommendedModelId: 'perplexity-pro',
+        modelName: 'Perplexity',
+        reason: 'Best for web research, real-time index verification, and cited answers.'
+      },
+      {
+        id: 'task-study',
+        title: 'Study & Learning',
+        recommendedModelId: 'gemini-1-5-pro',
+        modelName: 'Gemini',
+        reason: 'Strong for multi-page explanations, diagrams, OCR documents, and study guides.'
+      },
+      {
+        id: 'task-coding',
+        title: 'Coding & Refactoring',
+        recommendedModelId: 'chatgpt-4o',
+        modelName: 'ChatGPT / Claude',
+        reason: 'Superior syntax parsing, multi-file code generation, and technical debugging.'
+      },
+      {
+        id: 'task-confidential',
+        title: 'Confidential Internal Work',
+        recommendedModelId: 'private-enterprise-llm',
+        modelName: 'Private Enterprise LLM',
+        reason: 'Strict on-premise protection for intellectual property and restricted data.'
+      }
+    ];
+
+    function SecurityBadge({ level }) {
+      const isHighest = level.includes('Highest');
+      const isEnterprise = level.includes('Enterprise');
+      
+      let bg = 'rgba(18, 61, 43, 0.08)';
+      let color = '#123D2B';
+      let border = 'rgba(18, 61, 43, 0.2)';
+
+      if (isHighest) {
+        bg = '#FFF8E6';
+        color = '#8A6100';
+        border = '#F6C445';
+      } else if (isEnterprise) {
+        bg = '#EBF5F0';
+        color = '#0D3424';
+        border = '#A3C7B7';
+      }
+
+      return (
+        <span style={{
+          display: 'inline-flex', alignItems: 'center', gap: '4px',
+          fontSize: '0.75rem', fontWeight: '600', padding: '3px 8px',
+          borderRadius: '9999px', backgroundColor: bg, color: color, border: `1px solid ${border}`
+        }}>
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: color }}></span>
+          {level}
+        </span>
+      );
+    }
+
+    function ModelCard({ model, isSelected, onSelect, onViewDetails }) {
+      return (
+        <article tabIndex={0} aria-selected={isSelected} style={{
+          backgroundColor: '#FFFFFF', borderRadius: '12px',
+          border: isSelected ? '2px solid #F6C445' : '1px solid #D1D9D5',
+          boxShadow: isSelected ? '0 4px 20px rgba(246, 196, 69, 0.25)' : '0 2px 8px rgba(13, 52, 36, 0.04)',
+          padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+          position: 'relative', transition: 'all 180ms ease-in-out', outline: 'none'
+        }}>
+          {isSelected && (
+            <div style={{
+              position: 'absolute', top: '-12px', right: '16px', backgroundColor: '#0D3424',
+              color: '#F6C445', fontSize: '0.75rem', fontWeight: '700', padding: '2px 10px',
+              borderRadius: '9999px', display: 'flex', alignItems: 'center', gap: '4px', border: '1px solid #F6C445'
+            }}>
+              <span>✓</span> Selected
+            </div>
+          )}
+
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '40px', height: '40px', borderRadius: '8px', backgroundColor: model.logoBg,
+                  color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontWeight: '700', fontSize: '1.1rem', flexShrink: 0
+                }}>
+                  {model.name.charAt(0)}
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1rem', fontWeight: '700', color: '#1A2420', margin: 0 }}>
+                    {model.name} <span style={{ fontSize: '0.8rem', fontWeight: '500', color: '#52635B' }}>{model.version}</span>
+                  </h3>
+                  <p style={{ fontSize: '0.8125rem', color: '#52635B', margin: 0 }}>{model.provider}</p>
+                </div>
+              </div>
+              <SecurityBadge level={model.securityLevel} />
+            </div>
+
+            <p style={{ fontSize: '0.875rem', color: '#52635B', lineHeight: '1.45', marginBottom: '16px' }}>
+              {model.description}
+            </p>
+
+            <div style={{ marginBottom: '16px' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: '600', color: '#1A2420', display: 'block', marginBottom: '6px' }}>
+                BEST FOR:
+              </span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {model.bestFor.map((tag, idx) => (
+                  <span key={idx} style={{
+                    fontSize: '0.75rem', backgroundColor: '#F8FAF9', color: '#123D2B',
+                    border: '1px solid #E1E8E4', padding: '2px 8px', borderRadius: '6px'
+                  }}>
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div style={{
+              fontSize: '0.75rem', color: '#52635B', backgroundColor: '#F8FAF9',
+              padding: '8px 10px', borderRadius: '6px', marginBottom: '16px',
+              display: 'flex', alignItems: 'center', gap: '6px'
+            }}>
+              <span style={{ color: '#123D2B', fontWeight: '700' }}>Policy:</span> {model.dataPolicy}
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <button type="button" onClick={() => onSelect(model)} style={{
+                height: '38px', backgroundColor: isSelected ? '#0D3424' : '#F6C445',
+                color: isSelected ? '#FFFFFF' : '#082217', border: 'none', borderRadius: '8px',
+                fontSize: '0.8125rem', fontWeight: '600', cursor: 'pointer'
+              }}>
+                {isSelected ? 'Active' : 'Select model'}
+              </button>
+              
+              <button type="button" onClick={() => onViewDetails(model)} style={{
+                height: '38px', backgroundColor: 'transparent', color: '#123D2B',
+                border: '1px solid #123D2B', borderRadius: '8px', fontSize: '0.8125rem',
+                fontWeight: '600', cursor: 'pointer'
+              }}>
+                View details
+              </button>
+            </div>
+          </div>
+        </article>
+      );
+    }
+
+    function TaskCard({ task, onSelectTask }) {
+      return (
+        <div style={{
+          backgroundColor: '#FFFFFF', border: '1px solid #D1D9D5', borderRadius: '10px',
+          padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+        }}>
+          <div>
+            <h4 style={{ fontSize: '0.9375rem', fontWeight: '700', color: '#1A2420', marginBottom: '4px' }}>
+              {task.title}
+            </h4>
+            <div style={{ fontSize: '0.8125rem', color: '#123D2B', fontWeight: '600', marginBottom: '8px' }}>
+              Rec: {task.modelName}
+            </div>
+            <p style={{ fontSize: '0.8125rem', color: '#52635B', lineHeight: '1.4', marginBottom: '16px' }}>
+              {task.reason}
+            </p>
+          </div>
+          <button type="button" onClick={() => onSelectTask(task.recommendedModelId)} style={{
+            backgroundColor: 'transparent', border: '1px solid #123D2B', color: '#123D2B',
+            padding: '6px 12px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '600',
+            cursor: 'pointer', alignSelf: 'flex-start'
+          }}>
+            Use recommended model →
+          </button>
+        </div>
+      );
+    }
+
+    function AIModelDashboard() {
+      const [models, setModels] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [selectedModel, setSelectedModel] = useState(null);
+      const [detailModalModel, setDetailModalModel] = useState(null);
+
+      const [searchQuery, setSearchQuery] = useState('');
+      const [taskFilter, setTaskFilter] = useState('All');
+      const [sensitivityFilter, setSensitivityFilter] = useState('All');
+      const [approvedOnly, setApprovedOnly] = useState(false);
+
+      useEffect(() => {
+        const timer = setTimeout(() => {
+          setModels(AI_MODELS_DATA);
+          setSelectedModel(AI_MODELS_DATA[0]);
+          setLoading(false);
+        }, 400);
+        return () => clearTimeout(timer);
+      }, []);
+
+      const filteredModels = useMemo(() => {
+        return models.filter((model) => {
+          const matchesSearch = 
+            model.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            model.provider.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            model.description.toLowerCase().includes(searchQuery.toLowerCase());
+
+          const matchesTask = taskFilter === 'All' || model.bestFor.some(t => t.toLowerCase().includes(taskFilter.toLowerCase()));
+          const matchesSensitivity = sensitivityFilter === 'All' || model.approvedDataLevels.includes(sensitivityFilter);
+          const matchesApproved = !approvedOnly || model.integrationStatus === 'Connected';
+
+          return matchesSearch && matchesTask && matchesSensitivity && matchesApproved;
+        });
+      }, [models, searchQuery, taskFilter, sensitivityFilter, approvedOnly]);
+
+      const handleSelectModel = (model) => setSelectedModel(model);
+
+      const handleOpenSecureSession = () => {
+        if (!selectedModel) return;
+        const isViolation = sensitivityFilter !== 'All' && !selectedModel.approvedDataLevels.includes(sensitivityFilter);
+        if (isViolation) {
+          alert(`Security Policy Violation: ${selectedModel.name} does not allow ${sensitivityFilter} data level.`);
+          return;
+        }
+        alert(`Launching Secure Gateway Session for ${selectedModel.name}... Data pre-scanning initialized.`);
+      };
+
+      const handleResetFilters = () => {
+        setSearchQuery('');
+        setTaskFilter('All');
+        setSensitivityFilter('All');
+        setApprovedOnly(false);
+      };
+
+      const isSelectedModelCompliant = useMemo(() => {
+        if (!selectedModel || sensitivityFilter === 'All') return true;
+        return selectedModel.approvedDataLevels.includes(sensitivityFilter);
+      }, [selectedModel, sensitivityFilter]);
+
+      return (
+        <div style={{ minHeight: '100vh', backgroundColor: '#F8FAF9', fontFamily: "'Inter', sans-serif", color: '#1A2420' }}>
+          
+          <header style={{
+            backgroundColor: '#0D3424', color: '#FFFFFF', height: '64px', padding: '0 32px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            position: 'sticky', top: 0, zIndex: 100, borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <svg width="28" height="28" viewBox="0 0 32 32" fill="none" style={{ color: '#F6C445' }}>
+                  <path d="M16 3L4 8V15C4 22.38 9.12 28.98 16 30C22.88 28.98 28 22.38 28 15V8L16 3Z" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M16 8L21 12V18L16 22L11 18V12L16 8Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span style={{ fontWeight: '700', fontSize: '1.1rem', letterSpacing: '-0.02em' }}>TurtleMask</span>
+              </div>
+
+              <nav style={{ display: 'flex', gap: '20px' }}>
+                <a href="#models" style={{ color: '#FFFFFF', textDecoration: 'none', fontSize: '0.875rem', fontWeight: '600', borderBottom: '2px solid #F6C445', paddingBottom: '18px' }}>AI Models</a>
+                <a href="#chat" style={{ color: '#A3B8AE', textDecoration: 'none', fontSize: '0.875rem', fontWeight: '500' }}>Secure Chat</a>
+                <a href="#documents" style={{ color: '#A3B8AE', textDecoration: 'none', fontSize: '0.875rem', fontWeight: '500' }}>Documents</a>
+              </nav>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.15)', padding: '4px 12px', borderRadius: '9999px', fontSize: '0.75rem', color: '#A3B8AE'
+              }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#F6C445' }}></span>
+                Protected Workspace
+              </div>
+              <div style={{
+                width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#123D2B',
+                border: '1px solid #F6C445', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '0.8125rem', fontWeight: '700', color: '#F6C445'
+              }}>
+                JD
+              </div>
+            </div>
+          </header>
+
+          <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '40px 24px 140px 24px' }}>
+            <section style={{ marginBottom: '32px' }}>
+              <h1 style={{ fontSize: '2rem', fontWeight: '700', letterSpacing: '-0.02em', color: '#0D3424', marginBottom: '8px' }}>
+                Choose your AI model
+              </h1>
+              <p style={{ fontSize: '1rem', color: '#52635B', margin: 0, maxWidth: '720px' }}>
+                Select a trusted AI model for your task. TurtleMask will scan and protect sensitive information before it is sent.
+              </p>
+            </section>
+
+            <section style={{
+              backgroundColor: '#FFFFFF', border: '1px solid #D1D9D5', borderRadius: '12px',
+              padding: '20px', marginBottom: '32px', boxShadow: '0 2px 8px rgba(13, 52, 36, 0.02)'
+            }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', alignItems: 'center' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '4px', color: '#1A2420' }}>SEARCH MODELS</label>
+                  <input type="text" placeholder="Search AI models..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{
+                    width: '100%', height: '40px', padding: '0 12px', borderRadius: '8px', border: '1px solid #D1D9D5', fontSize: '0.875rem', boxSizing: 'border-box'
+                  }}/>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '4px', color: '#1A2420' }}>TASK TYPE</label>
+                  <select value={taskFilter} onChange={(e) => setTaskFilter(e.target.value)} style={{
+                    width: '100%', height: '40px', padding: '0 12px', borderRadius: '8px', border: '1px solid #D1D9D5', fontSize: '0.875rem', backgroundColor: '#FFFFFF', boxSizing: 'border-box'
+                  }}>
+                    <option value="All">All tasks</option>
+                    <option value="Research">Deep research</option>
+                    <option value="Study">Study and learning</option>
+                    <option value="Coding">Coding</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '4px', color: '#1A2420' }}>DATA SENSITIVITY</label>
+                  <select value={sensitivityFilter} onChange={(e) => setSensitivityFilter(e.target.value)} style={{
+                    width: '100%', height: '40px', padding: '0 12px', borderRadius: '8px', border: '1px solid #D1D9D5', fontSize: '0.875rem', backgroundColor: '#FFFFFF', boxSizing: 'border-box'
+                  }}>
+                    <option value="All">All data levels</option>
+                    <option value="Public">Public</option>
+                    <option value="Internal">Internal</option>
+                    <option value="Confidential">Confidential</option>
+                    <option value="Restricted">Restricted</option>
+                  </select>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '18px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.8125rem', fontWeight: '500' }}>
+                    <input type="checkbox" checked={approvedOnly} onChange={(e) => setApprovedOnly(e.target.checked)} style={{ accentColor: '#123D2B', width: '16px', height: '16px' }}/>
+                    Approved only
+                  </label>
+                  <button type="button" onClick={handleResetFilters} style={{ background: 'none', border: 'none', color: '#123D2B', fontSize: '0.8125rem', fontWeight: '600', cursor: 'pointer', textDecoration: 'underline' }}>Reset</button>
+                </div>
+              </div>
+            </section>
+
+            <section style={{ marginBottom: '48px' }}>
+              {loading ? (
+                <div style={{ height: '320px', backgroundColor: '#E1E8E4', borderRadius: '12px', animation: 'pulse 1.5s infinite ease-in-out' }}></div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '24px' }}>
+                  {filteredModels.map((model) => (
+                    <ModelCard key={model.id} model={model} isSelected={selectedModel?.id === model.id} onSelect={handleSelectModel} onViewDetails={setDetailModalModel} />
+                  ))}
+                </div>
+              )}
+            </section>
+
+            <section style={{ marginBottom: '40px' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#0D3424', marginBottom: '16px' }}>Not sure which model to choose?</h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+                {RECOMMENDED_TASKS.map((task) => (
+                  <TaskCard key={task.id} task={task} onSelectTask={(id) => {
+                    const target = models.find(m => m.id === id);
+                    if (target) handleSelectModel(target);
+                  }} />
+                ))}
+              </div>
+            </section>
+          </main>
+
+          {selectedModel && (
+            <aside style={{
+              position: 'fixed', bottom: 0, left: 0, right: 0, backgroundColor: '#0D3424', color: '#FFFFFF',
+              padding: '16px 32px', boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.2)', zIndex: 90, borderTop: '2px solid #F6C445'
+            }}>
+              <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '8px', backgroundColor: selectedModel.logoBg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', color: '#FFFFFF' }}>
+                    {selectedModel.name.charAt(0)}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontWeight: '700', fontSize: '1rem', color: '#FFFFFF' }}>{selectedModel.name}</span>
+                      <span style={{ fontSize: '0.75rem', color: '#A3B8AE' }}>({selectedModel.provider})</span>
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#A3B8AE' }}>
+                      Allowed Level: <strong style={{ color: '#F6C445' }}>{selectedModel.approvedDataLevels.join(', ')}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <button type="button" disabled={!isSelectedModelCompliant} onClick={handleOpenSecureSession} style={{
+                  backgroundColor: isSelectedModelCompliant ? '#F6C445' : '#52635B',
+                  color: isSelectedModelCompliant ? '#082217' : '#9CA3AF', border: 'none',
+                  padding: '10px 20px', borderRadius: '8px', fontSize: '0.875rem', fontWeight: '700',
+                  cursor: isSelectedModelCompliant ? 'pointer' : 'not-allowed'
+                }}>
+                  Open Secure Session →
+                </button>
+              </div>
+            </aside>
+          )}
+
+          {detailModalModel && (
+            <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(8, 34, 23, 0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: '20px' }}>
+              <div style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', maxWidth: '560px', width: '100%', padding: '28px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.3)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.125rem' }}>{detailModalModel.name}</h3>
+                  <button onClick={() => setDetailModalModel(null)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer' }}>✕</button>
+                </div>
+                <p style={{ fontSize: '0.875rem', color: '#52635B' }}>{detailModalModel.description}</p>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+                  <button onClick={() => setDetailModalModel(null)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #D1D9D5', backgroundColor: 'transparent', cursor: 'pointer' }}>Close</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<AIModelDashboard />);
+  </script>
+
+</body>
+</html>
