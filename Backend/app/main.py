@@ -1,5 +1,8 @@
+import os
 from fastapi import FastAPI, Depends, HTTPException, Response, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -15,9 +18,10 @@ app = FastAPI(title="Turtle Mask - Complete Backend, ML & API Gateway")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+# Permissive CORS for seamless local development across any frontend port / origin
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origin_regex=".*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -25,7 +29,11 @@ app.add_middleware(
 
 @app.get("/")
 def home():
-    return {"status": "Turtle Mask Complete Gateway is active! 🐢🛡️🧠🚀"}
+    return {
+        "status": "Turtle Mask Complete Gateway is active! 🐢🛡️🧠🚀",
+        "version": "2.4.0",
+        "guards": ["DeBERTa-v3 Injection Detector", "Presidio + spaCy NER", "Ollama Gemma Secret Guard", "RAM Whiteboard Session Store"]
+    }
 
 @app.post("/signup")
 def sign_up(user_data: schemas.UserSignupRequest, db: Session = Depends(get_db)):
@@ -61,24 +69,67 @@ def log_in(login_data: schemas.UserLoginRequest, response: Response, db: Session
     return {
         "message": "Logged in!",
         "user_id": user.id,
-        "ui_mode": user.ui_mode
+        "email": user.email,
+        "ui_mode": user.ui_mode,
+        "token": token
+    }
+
+@app.post("/user/mode")
+def update_user_mode(req: schemas.UpdateModeRequest, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == req.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found!")
+    user.ui_mode = req.ui_mode
+    db.commit()
+    return {
+        "message": f"Security mode successfully updated to {req.ui_mode.value}",
+        "ui_mode": user.ui_mode.value
     }
 
 @app.post("/vault/connect")
 def connect_ai_model(vault_data: schemas.ConnectModelRequest, db: Session = Depends(get_db)):
     encrypted_key = security.encrypt_api_key(vault_data.raw_api_key)
 
-    new_model = models.ConnectedModel(
-        user_id=vault_data.user_id,
-        provider_name=vault_data.provider_name,
-        encrypted_api_key=encrypted_key,
-        is_active=True
-    )
-    db.add(new_model)
-    db.commit()
+    # Check if this user already connected this provider, update if so
+    existing_model = db.query(models.ConnectedModel).filter(
+        models.ConnectedModel.user_id == vault_data.user_id,
+        models.ConnectedModel.provider_name == vault_data.provider_name
+    ).first()
+
+    if existing_model:
+        existing_model.encrypted_api_key = encrypted_key
+        existing_model.is_active = True
+        db.commit()
+    else:
+        new_model = models.ConnectedModel(
+            user_id=vault_data.user_id,
+            provider_name=vault_data.provider_name,
+            encrypted_api_key=encrypted_key,
+            is_active=True
+        )
+        db.add(new_model)
+        db.commit()
 
     return {
-        "message": f"Success! Your {vault_data.provider_name.value} key is encrypted and locked in the Vault."
+        "message": f"Success! Your {vault_data.provider_name.value} key is encrypted and locked in the Vault.",
+        "provider": vault_data.provider_name.value,
+        "status": "LOCKED"
+    }
+
+@app.get("/vault/models/{user_id}")
+def get_user_connected_models(user_id: str, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found!")
+
+    connected = db.query(models.ConnectedModel).filter(
+        models.ConnectedModel.user_id == user_id,
+        models.ConnectedModel.is_active == True
+    ).all()
+
+    return {
+        "user_id": user_id,
+        "connected_providers": [m.provider_name.value for m in connected]
     }
 
 @app.post("/ml/analyze-prompt")
@@ -140,11 +191,12 @@ async def extract_and_scan_file(
     return {
         "filename": file.filename,
         "extracted_text_preview": extracted_text[:300],
+        "full_text": extracted_text,
         "security_scan": scan_results
     }
 
 # ==========================================
-# NEW API-FEATURE CHAT PROXY DOOR! 🌐🤖
+# SECURE AI CHAT PROXY DOOR 🌐🤖
 # ==========================================
 
 @app.post("/ai/chat")
@@ -172,6 +224,7 @@ def secure_ai_chat_proxy(req: schemas.ChatProxyRequest, db: Session = Depends(ge
 
     ram_ticket_id = None
     sanitized_prompt = working_text
+    dummy_mapping = {}
 
     if ui_mode == models.UIModeEnum.TECH_STRICT:
         if pii_found or gemma_secret_check.get("has_confidential_code_or_secrets"):
@@ -185,7 +238,8 @@ def secure_ai_chat_proxy(req: schemas.ChatProxyRequest, db: Session = Depends(ge
     else:
         mask_result = ollama_brain.generate_smart_dummy_mask(working_text, pii_found)
         sanitized_prompt = mask_result["masked_text"]
-        ram_ticket_id = session_store.save_dummy_mapping_in_ram(mask_result["dummy_mapping"])
+        dummy_mapping = mask_result.get("dummy_mapping", {})
+        ram_ticket_id = session_store.save_dummy_mapping_in_ram(dummy_mapping)
 
     api_result = api_router.call_external_ai_provider(
         db=db,
@@ -196,8 +250,40 @@ def secure_ai_chat_proxy(req: schemas.ChatProxyRequest, db: Session = Depends(ge
     )
 
     return {
-        "ui_mode_applied": ui_mode,
+        "ui_mode_applied": ui_mode.value,
         "original_prompt": req.prompt_text,
         "sanitized_prompt_sent_to_external_api": sanitized_prompt,
+        "pii_detected": pii_found,
+        "dummy_mapping_used": dummy_mapping,
+        "injection_analysis": injection_result,
         "ai_response_result": api_result
     }
+
+# ==========================================
+# STATIC FRONTEND SERVING & DIRECT ASSET MOUNT
+# ==========================================
+
+frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "Frontend"))
+if os.path.exists(frontend_dir):
+    app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
+
+    css_dir = os.path.join(frontend_dir, "css")
+    if os.path.exists(css_dir):
+        app.mount("/css", StaticFiles(directory=css_dir), name="css")
+
+    js_dir = os.path.join(frontend_dir, "js")
+    if os.path.exists(js_dir):
+        app.mount("/js", StaticFiles(directory=js_dir), name="js")
+
+    assets_dir = os.path.join(frontend_dir, "assets")
+    if os.path.exists(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+    @app.get("/app")
+    @app.get("/ui")
+    @app.get("/frontend")
+    def serve_frontend_ui():
+        index_file = os.path.join(frontend_dir, "index.html")
+        if os.path.exists(index_file):
+            return FileResponse(index_file)
+        return {"error": "Frontend/index.html not found"}
