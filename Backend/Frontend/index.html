@@ -1,0 +1,142 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TurtleMask | Login</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body class="auth-body">
+  <main class="auth-layout">
+    <section class="auth-intro">
+      <a class="brand" href="index.html">
+        <span class="brand-icon">🐢</span>
+        <span>TurtleMask</span>
+      </a>
+
+      <div class="intro-content">
+        <span class="eyebrow">YOUR AI PRIVACY GATEWAY</span>
+        <h1>Use AI with<br><span>more privacy.</span></h1>
+        <p>
+          A simple demo of a privacy layer that helps identify sensitive
+          information before it reaches an AI assistant.
+        </p>
+
+        <div class="feature-list">
+          <div class="feature-item">
+            <span class="feature-icon">✓</span>
+            <div>
+              <strong>Privacy-first workflow</strong>
+              <p>Review sensitive information before sharing.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">⌕</span>
+            <div>
+              <strong>Simple privacy preview</strong>
+              <p>See how detected information could be masked.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">◇</span>
+            <div>
+              <strong>One clear workspace</strong>
+              <p>Explore the TurtleMask prototype in one place.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="intro-footer">A student prototype for a safer AI experience.</p>
+    </section>
+
+    <section class="auth-panel">
+      <div class="auth-card">
+        <div class="mobile-brand brand">
+          <span class="brand-icon">🐢</span>
+          <span>TurtleMask</span>
+        </div>
+
+        <div class="auth-heading">
+          <span class="eyebrow">WELCOME TO TURTLEMASK</span>
+          <h2 id="authTitle">Welcome back</h2>
+          <p id="authSubtitle">Log in to continue to your privacy workspace.</p>
+        </div>
+
+        <div class="auth-tabs" role="tablist" aria-label="Account options">
+          <button type="button" class="auth-tab active" id="loginTab">
+            Log in
+          </button>
+          <button type="button" class="auth-tab" id="signupTab">
+            Sign up
+          </button>
+        </div>
+
+        <form id="authForm">
+          <div class="form-group" id="nameGroup" hidden>
+            <label for="fullName">Full name</label>
+            <input
+              id="fullName"
+              name="fullName"
+              type="text"
+              placeholder="Your name"
+              autocomplete="name"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email address</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="you@example.com"
+              autocomplete="email"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="password-wrap">
+              <input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                minlength="6"
+                required
+              >
+              <button type="button" id="togglePassword" class="password-toggle">
+                Show
+              </button>
+            </div>
+          </div>
+
+          <p id="authMessage" class="form-message" role="alert"></p>
+
+          <button type="submit" class="btn btn-primary auth-submit" id="submitButton">
+            Log in
+          </button>
+        </form>
+
+        <div class="demo-box" id="demoBox">
+          <strong>Try the demo</strong>
+          <p>Email: <code>demo@turtlemask.com</code></p>
+          <p>Password: <code>Turtle123</code></p>
+          <button type="button" class="btn btn-secondary" id="fillDemo">
+            Fill demo credentials
+          </button>
+        </div>
+
+        <p class="auth-disclaimer">
+          Prototype only. Sign-up details are not saved to a real account.
+        </p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

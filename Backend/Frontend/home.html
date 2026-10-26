@@ -1,0 +1,306 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TurtleMask | Privacy Workspace</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body class="app-body">
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <a class="brand" href="home.html">
+        <span class="brand-icon">🐢</span>
+        <span>TurtleMask</span>
+      </a>
+      <span class="demo-badge">DEMO MODE</span>
+    </div>
+
+    <div class="topbar-right">
+      <button type="button" class="btn btn-outline" id="logoutButton">
+        Log out
+      </button>
+    </div>
+  </header>
+
+  <main class="workspace">
+
+    <aside class="sidebar">
+      <div>
+        <p class="sidebar-label">WORKSPACE</p>
+
+        <button
+          type="button"
+          class="nav-button active"
+          data-target="workspace"
+        >
+          <span>⌂</span> AI Workspace
+        </button>
+
+        <button
+          type="button"
+          class="nav-button"
+          data-target="new-chat"
+        >
+          <span>＋</span> New conversation
+        </button>
+
+        <button
+          type="button"
+          class="nav-button"
+          data-target="history"
+        >
+          <span>◷</span> History
+        </button>
+      </div>
+
+      <div class="sidebar-note">
+        <strong>🛡 Privacy first</strong>
+        <p>
+          Review your text for possible sensitive information before sharing it
+          with an AI assistant.
+        </p>
+      </div>
+    </aside>
+
+    <section class="chat-panel">
+      <header class="panel-header">
+        <div>
+          <h2 id="chatTitle">AI Privacy Workspace</h2>
+          <p id="chatSubtitle">
+            Explore a privacy-aware AI workflow.
+          </p>
+        </div>
+
+        <button type="button" class="text-button" id="clearChat">
+          Clear chat
+        </button>
+      </header>
+
+      <div class="chat-content" id="chatMessages">
+        <div class="welcome-card">
+          <div class="welcome-icon">🐢</div>
+          <h3>Welcome to TurtleMask</h3>
+          <p>
+            Your AI privacy gateway concept. Enter a sample message below
+            to see how the demo scanner identifies selected patterns and
+            displays a masked preview.
+          </p>
+
+          <div class="suggestions">
+            <button
+              type="button"
+              class="suggestion-card"
+              data-prompt="My email is alex@example.com. Help me draft a professional email."
+            >
+              ✉️ <strong>Check an email address</strong><br>
+              Preview how an email might be masked.
+            </button>
+
+            <button
+              type="button"
+              class="suggestion-card"
+              data-prompt="Please contact me at +1 202 555 0147 about the project."
+            >
+              ☎️ <strong>Check a phone number</strong><br>
+              Look for a possible phone number.
+            </button>
+
+            <button
+              type="button"
+              class="suggestion-card"
+              data-prompt="Help me summarize this project update and make it clearer."
+            >
+              ✨ <strong>Improve some text</strong><br>
+              Try a message without obvious sensitive patterns.
+            </button>
+
+            <button
+              type="button"
+              class="suggestion-card"
+              data-prompt="My API key is sk-test1234567890abcdef. Explain why keys should be kept private."
+            >
+              🔑 <strong>Check a sample API key</strong><br>
+              Try the demo key-pattern detector.
+            </button>
+          </div>
+        </div>
+      </div>
+
+      
+<div class="chat-compose">
+  <div class="input-mode-tabs" role="group" aria-label="Choose input type">
+    <button type="button" class="mode-button active" data-mode="text">
+      ✍️ Text
+    </button>
+    <button type="button" class="mode-button" data-mode="audio">
+      🎙️ Audio to Text
+    </button>
+    <button type="button" class="mode-button" data-mode="image">
+      🖼️ Image to Text
+    </button>
+  </div>
+
+  <!-- Text input -->
+  <section class="mode-panel" id="textMode">
+    <form id="chatForm">
+      <textarea
+        id="chatInput"
+        class="chat-input"
+        rows="3"
+        placeholder="Type your message here..."
+        aria-label="Type a message"
+      ></textarea>
+
+      <button type="submit" class="btn btn-primary">
+        Send message
+      </button>
+    </form>
+  </section>
+
+  <!-- Audio input -->
+  <section class="mode-panel" id="audioMode" hidden>
+    <p class="mode-description">
+      Use your microphone to convert speech into editable text.
+    </p>
+
+    <div class="mode-actions">
+      <button type="button" class="btn btn-primary" id="startRecording">
+        🎙️ Start speaking
+      </button>
+      <button type="button" class="btn btn-outline" id="stopRecording" disabled>
+        Stop
+      </button>
+    </div>
+
+    <p id="audioStatus" class="mode-status" aria-live="polite">
+      Microphone is not recording.
+    </p>
+
+    <label class="upload-label" for="audioFile">
+      Or select an audio file
+    </label>
+    <input
+      id="audioFile"
+      type="file"
+      accept="audio/*"
+    />
+    <p class="mode-hint">
+      Audio files can be selected here, but transcribing uploaded files
+      requires a speech-to-text service. Live microphone transcription
+      depends on browser support.
+    </p>
+
+    <button type="button" class="btn btn-secondary" id="useAudioText">
+      Use transcribed text
+    </button>
+  </section>
+
+  <!-- Image input -->
+  <section class="mode-panel" id="imageMode" hidden>
+    <p class="mode-description">
+      Upload an image containing text, such as a document, screenshot,
+      note, or printed page.
+    </p>
+
+    <label class="upload-label" for="imageFile">
+      Choose an image
+    </label>
+    <input
+      id="imageFile"
+      type="file"
+      accept="image/*"
+    />
+
+    <img
+      id="imagePreview"
+      class="image-preview"
+      alt="Selected image preview"
+      hidden
+    />
+
+    <button
+      type="button"
+      class="btn btn-primary"
+      id="extractImageText"
+      disabled
+    >
+      Extract text from image
+    </button>
+
+    <p id="imageStatus" class="mode-status" aria-live="polite"></p>
+
+    <label class="upload-label" for="extractedText">
+      Extracted text (editable)
+    </label>
+    <textarea
+      id="extractedText"
+      class="chat-input"
+      rows="4"
+      placeholder="Extracted text will appear here..."
+    ></textarea>
+
+    <button type="button" class="btn btn-secondary" id="useImageText">
+      Use extracted text
+    </button>
+  </section>
+
+  <p class="compose-hint">
+    Review your text before sending. This prototype's privacy scanner
+    checks only a few common patterns.
+  </p>
+</div>
+
+    </section>
+
+    <aside class="privacy-panel">
+      <h3>🛡 Privacy Guard</h3>
+      <p>
+        Review the local scan preview for the message you entered.
+      </p>
+
+      <div class="status-row">
+        <span class="status-dot"></span>
+        <span>Demo scanner ready</span>
+      </div>
+
+      <div class="privacy-stat">
+        <span>Possible matches found</span>
+        <strong id="detectedCount">0</strong>
+      </div>
+
+      <label class="policy-label" for="policySelect">
+        Demo privacy policy
+      </label>
+
+      <select class="policy-select" id="policySelect">
+        <option value="balanced">Balanced</option>
+        <option value="strict">Strict</option>
+        <option value="relaxed">Relaxed</option>
+      </select>
+
+      <div class="scan-result" id="scanResult">
+        <h4>Privacy scan preview</h4>
+        <p>
+          Your next message will be scanned for demo patterns.
+        </p>
+      </div>
+
+      <div class="privacy-notice">
+        <strong>Important:</strong> This is a frontend demonstration.
+        The policy selector does not enforce real security rules, and
+        detected patterns are not a complete privacy scan. No AI API
+        or backend is connected.
+      </div>
+    </aside>
+
+  </main>
+
+</body>
+</html>
